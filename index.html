@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Seni Seviyorum Butonları</title>
+<style>
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: Arial, sans-serif;
+    background: #ffe6f0;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+  #yazi {
+    font-size: 6em;
+    font-weight: bold;
+    color: #ff4d7e;
+    margin-bottom: 40px;
+    user-select: none;
+    white-space: nowrap;
+  }
+  #container {
+    width: 1800px;
+    height: 1000px;
+    background: #ffd6e8;
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  #biliyorumBtn, #bendeBtn {
+    font-size: 3em;
+    padding: 30px 60px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    background-color: #ff4d7e;
+    color: white;
+    user-select: none;
+    position: absolute;
+    transition: transform 0.4s ease;
+    transform-origin: center center;
+  }
+  .baloncuk {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.3);
+    color: black;
+    padding: 15px 30px;
+    border-radius: 35px;
+    font-weight: bold;
+    font-size: 1.5em;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+    text-shadow:
+       0 0 5px rgba(0,0,0,0.2),
+       0 0 10px rgba(0,0,0,0.15);
+    box-shadow: 0 0 10px rgba(255,255,255,0.5);
+    animation: fadeInOut 1.5s forwards;
+  }
+  @keyframes fadeInOut {
+    0% {
+      opacity: 0;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="yazi">Seni Seviyorum</div>
+
+<div id="container">
+  <button id="biliyorumBtn">Biliyorum</button>
+  <button id="bendeBtn">Bende seni seviyorumm</button>
+</div>
+
+<script>
+  const biliyorumBtn = document.getElementById('biliyorumBtn');
+  const bendeBtn = document.getElementById('bendeBtn');
+  const container = document.getElementById('container');
+
+  let firstClickDone = false;
+  let clickCount = 0;
+  let bendeBtnScale = 1;
+
+  function placeButtonsInitially() {
+    const containerRect = container.getBoundingClientRect();
+    const biliyorumWidth = biliyorumBtn.offsetWidth;
+    const bendeWidth = bendeBtn.offsetWidth;
+    const btnHeight = biliyorumBtn.offsetHeight;
+
+    const totalWidth = biliyorumWidth + bendeWidth + 100; 
+    const startLeft = (containerRect.width - totalWidth) / 2;
+    const top = (containerRect.height - btnHeight) / 2;
+
+    biliyorumBtn.style.left = startLeft + 'px';
+    biliyorumBtn.style.top = top + 'px';
+
+    bendeBtn.style.left = (startLeft + biliyorumWidth + 100) + 'px';
+    bendeBtn.style.top = top + 'px';
+    bendeBtn.style.transform = 'scale(1)';
+    bendeBtnScale = 1;
+  }
+
+  function isOverlap(rect1, rect2) {
+    return !(
+      rect1.right <= rect2.left ||
+      rect1.left >= rect2.right ||
+      rect1.bottom <= rect2.top ||
+      rect1.top >= rect2.bottom
+    );
+  }
+
+  function createBaloncuk(clickNumber) {
+    const baloncuk = document.createElement('div');
+    baloncuk.classList.add('baloncuk');
+
+    if (clickNumber <= 5) {
+      baloncuk.textContent = 'Eşşek';
+    } else if (clickNumber <= 10) {
+      baloncuk.textContent = 'Zorlama işte';
+    } else if (clickNumber <= 20) {
+      baloncuk.textContent = 'Harbi malsın';
+    } else {
+      baloncuk.textContent = '';
+    }
+
+    container.appendChild(baloncuk);
+
+    const baloncukRect = baloncuk.getBoundingClientRect();
+
+    let left = Math.random() * (container.clientWidth - baloncukRect.width);
+    let top = Math.random() * (container.clientHeight - baloncukRect.height);
+
+    baloncuk.style.left = left + 'px';
+    baloncuk.style.top = top + 'px';
+
+    setTimeout(() => {
+      baloncuk.remove();
+    }, 1500);
+  }
+
+  biliyorumBtn.addEventListener('click', () => {
+    const containerRect = container.getBoundingClientRect();
+    const biliyorumWidth = biliyorumBtn.offsetWidth;
+    const biliyorumHeight = biliyorumBtn.offsetHeight;
+    const bendeWidth = bendeBtn.offsetWidth * bendeBtnScale; // büyütülmüş boyut
+    const bendeHeight = bendeBtn.offsetHeight * bendeBtnScale;
+
+    if (!firstClickDone) {
+      const bendeLeft = (containerRect.width - bendeWidth) / 2;
+      const bendeTop = (containerRect.height - bendeHeight) / 2;
+      bendeBtn.style.left = bendeLeft + 'px';
+      bendeBtn.style.top = bendeTop + 'px';
+      firstClickDone = true;
+    }
+
+    const bendeRect = {
+      left: parseFloat(bendeBtn.style.left),
+      top: parseFloat(bendeBtn.style.top),
+      right: parseFloat(bendeBtn.style.left) + bendeWidth,
+      bottom: parseFloat(bendeBtn.style.top) + bendeHeight
+    };
+
+    let tries = 0;
+    let left, top, newRect;
+
+    do {
+      left = Math.random() * (containerRect.width - biliyorumWidth);
+      top = Math.random() * (containerRect.height - biliyorumHeight);
+
+      newRect = {
+        left: left,
+        top: top,
+        right: left + biliyorumWidth,
+        bottom: top + biliyorumHeight
+      };
+
+      tries++;
+      if (tries > 1000) break;
+    } while (isOverlap(newRect, bendeRect));
+
+    biliyorumBtn.style.left = left + 'px';
+    biliyorumBtn.style.top = top + 'px';
+
+    clickCount++;
+
+    // Büyütme için container ve buton ölçüleri
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight;
+
+    // Butonun orijinal ölçüleri (scale 1'de)
+    const btnOriginalWidth = bendeBtn.offsetWidth;
+    const btnOriginalHeight = bendeBtn.offsetHeight;
+
+    // Hesapla: scale ile büyüyünce container'ı kaplayacak oran
+    const scaleX = containerWidth / btnOriginalWidth;
+    const scaleY = containerHeight / btnOriginalHeight;
+
+    // Küçük olanı seç
+    const maxScale = Math.min(scaleX, scaleY);
+
+    // Her tıklamada biraz büyü
+    if (bendeBtnScale < maxScale) {
+      bendeBtnScale += 0.1;
+      if (bendeBtnScale > maxScale) bendeBtnScale = maxScale;
+      bendeBtn.style.transform = `scale(${bendeBtnScale})`;
+    }
+
+    if (clickCount <= 20) {
+      for(let i = 0; i < 5; i++) {
+        createBaloncuk(clickCount);
+      }
+    }
+  });
+
+  window.onload = placeButtonsInitially;
+  window.onresize = placeButtonsInitially;
+</script>
+
+</body>
+</html>
